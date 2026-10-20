@@ -547,12 +547,17 @@
     }
 
     function setDurationFromMode() {
-      const durationMinutes = getFocusDuration();
-      const desiredSeconds = durationMinutes * 60;
+      if (state.mode !== "focus") return;
 
-      if (remaining === 0 || remaining > desiredSeconds) {
-        remaining = desiredSeconds;
+      const targetMinutes = getFocusDuration();
+      const targetSeconds = targetMinutes * 60;
+
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
       }
+
+      remaining = targetSeconds;
       showTime();
     }
 
@@ -767,7 +772,6 @@
           task.completedPomodoros += 1;
         }
 
-        const duration = getFocusDuration();
         if (task) {
           state.xp += 15;
           state.streak = Math.max(0, state.streak + 1);
