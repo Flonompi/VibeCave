@@ -400,6 +400,16 @@
           <button type="button" class="mode-btn" data-mode="break">Break</button>
         </div>
         <div id="activeTaskLabel" class="small">No active task selected</div>
+
+        <label for="breakLength">Break length</label>
+        <select id="breakLength" aria-label="Choose break length">
+          <option value="5" selected>5 minutes</option>
+          <option value="10">10 minutes</option>
+          <option value="15">15 minutes</option>
+          <option value="20">20 minutes</option>
+          <option value="30">30 minutes</option>
+        </select>
+
         <div class="timer-box">
           <div class="timer" id="timer" role="timer" aria-live="polite" aria-label="25 minutes remaining">25:00</div>
         </div>
@@ -461,6 +471,15 @@
       roundsBeforeLongBreak: 4
     };
 
+    const FROG_STAGES = [
+      { emoji: "🫧", label: "Tadpole" },
+      { emoji: "🐸", label: "Froglet" },
+      { emoji: "🐸🌱", label: "Growing frog" },
+      { emoji: "🐸🎓", label: "Scholar frog" },
+      { emoji: "🐸✨", label: "Legendary frog" },
+      { emoji: "🐸👑", label: "Royal frog" }
+    ];
+
     let state = {};
     let timerInterval = null;
     let remaining = DEFAULTS.defaultFocus * 60;
@@ -478,7 +497,9 @@
         lastCompletedTaskId: null,
         completedFocusSessions: 0,
         totalFocusMinutes: 0,
-        currentTimerDuration: DEFAULTS.defaultFocus
+        currentTimerDuration: DEFAULTS.defaultFocus,
+        shortBreakMinutes: DEFAULTS.shortBreak,
+        longBreakMinutes: DEFAULTS.longBreak
       };
     }
 
@@ -495,6 +516,12 @@
         completedPomodoros: Number(task.completedPomodoros) || 0,
         createdAt: task.createdAt || Date.now()
       };
+    }
+
+    function getFrogStage() {
+      const level = Math.floor((state.xp || 0) / 50) + 1;
+      const index = Math.min(Math.max(level - 1, 0), FROG_STAGES.length - 1);
+      return FROG_STAGES[index];
     }
 
     function loadState() {
@@ -514,6 +541,8 @@
         if (!Number.isFinite(state.totalFocusMinutes) || state.totalFocusMinutes < 0) state.totalFocusMinutes = 0;
         if (!Number.isFinite(state.streak) || state.streak < 0) state.streak = 0;
         if (!Number.isFinite(state.currentTimerDuration) || state.currentTimerDuration <= 0) state.currentTimerDuration = DEFAULTS.defaultFocus;
+        if (!Number.isFinite(state.shortBreakMinutes) || state.shortBreakMinutes <= 0) state.shortBreakMinutes = DEFAULTS.shortBreak;
+        if (!Number.isFinite(state.longBreakMinutes) || state.longBreakMinutes <= 0) state.longBreakMinutes = DEFAULTS.longBreak;
         if (!state.currentTaskId && state.tasks.length) state.currentTaskId = state.tasks[0].id;
       } catch {
         state = createDefaultState();
@@ -543,20 +572,14 @@
 
       const completed = state.completedFocusSessions || 0;
       const isLongBreak = completed > 0 && completed % DEFAULTS.roundsBeforeLongBreak === 0;
-      return isLongBreak ? DEFAULTS.longBreak : DEFAULTS.shortBreak;
+      return isLongBreak ? state.longBreakMinutes : state.shortBreakMinutes;
     }
 
     function setDurationFromMode() {
-      if (state.mode !== "focus") return;
+      if (timerInterval !== null) return;
 
       const targetMinutes = getFocusDuration();
       const targetSeconds = targetMinutes * 60;
-
-      if (timerInterval !== null) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-
       remaining = targetSeconds;
       showTime();
     }
@@ -629,6 +652,10 @@
         activate.addEventListener("click", () => {
           state.currentTaskId = task.id;
           state.currentTimerDuration = task.duration;
+          if (state.mode === "focus") {
+            remaining = task.duration * 60;
+            showTime();
+          }
           save();
           render();
         });
@@ -659,13 +686,19 @@
     function renderMood() {
       const taskCount = state.tasks.length;
       const completed = state.tasks.filter(task => task.done).length;
-      const frog = completed >= 3 || state.pomodoros >= 4 ? "🐸🎓" : "🐸";
-      $("frog").textContent = frog;
-      $("frog").setAttribute("aria-label", completed >= 3 ? "Proud frog wearing a graduation cap" : "Green frog");
 
       if (completed >= 3 || state.pomodoros >= 4) {
+        $("frog").textContent = "🐸🎓";
+        $("frog").setAttribute("aria-label", "Proud frog wearing a graduation cap");
         $("mood").textContent = "ABSOLUTE ACADEMIC WEAPON!";
-      } else if (completed > 0 || state.pomodoros > 0) {
+        return;
+      }
+
+      const stage = getFrogStage();
+      $("frog").textContent = stage.emoji;
+      $("frog").setAttribute("aria-label", `${stage.label} frog`);
+
+      if (completed > 0 || state.pomodoros > 0) {
         $("mood").textContent = "Look at you go! Ribbit!";
       } else if (taskCount > 0) {
         $("mood").textContent = "Those missions won't do themselves 👀";
@@ -713,6 +746,7 @@
       renderMood();
       renderStats();
       renderModeButtons();
+      $("breakLength").value = String(state.shortBreakMinutes);
       setDurationFromMode();
     }
 
@@ -738,6 +772,9 @@
       state.tasks.push(task);
       state.currentTaskId = task.id;
       state.currentTimerDuration = task.duration;
+      if (state.mode === "focus") {
+        remaining = task.duration * 60;
+      }
       save();
       render();
 
@@ -782,7 +819,7 @@
           : "Focus complete! Take a well-earned break.";
 
         state.mode = "break";
-        remaining = (state.completedFocusSessions % DEFAULTS.roundsBeforeLongBreak === 0 ? DEFAULTS.longBreak : DEFAULTS.shortBreak) * 60;
+        remaining = (state.completedFocusSessions % DEFAULTS.roundsBeforeLongBreak === 0 ? state.longBreakMinutes : state.shortBreakMinutes) * 60;
       } else {
         $("timerMessage").textContent = "Break over — back to work, little frog.";
         state.mode = "focus";
@@ -838,6 +875,21 @@
 
       document.querySelectorAll(".mode-btn").forEach(button => {
         button.addEventListener("click", () => switchMode(button.dataset.mode));
+      });
+
+      $("breakLength").addEventListener("change", event => {
+        const nextMinutes = Number(event.target.value);
+        if (!Number.isFinite(nextMinutes) || nextMinutes <= 0) return;
+
+        state.shortBreakMinutes = nextMinutes;
+        state.longBreakMinutes = nextMinutes;
+        save();
+
+        if (state.mode === "break") {
+          remaining = getFocusDuration() * 60;
+          showTime();
+          $("timerMessage").textContent = `Break length updated to ${nextMinutes} minutes.`;
+        }
       });
 
       $("start").addEventListener("click", startTimer);
