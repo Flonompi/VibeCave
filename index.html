@@ -25,22 +25,22 @@
     }
 
     :root[data-theme="dark"] {
-      --bg: #1a1d1a;
-      --panel: #1f2521;
-      --card: #252d29;
-      --ink: #edf4eb;
-      --muted: #bac9ba;
-      --border: #36453a;
-      --primary: #7dd58f;
-      --primary-dark: #5bb878;
-      --secondary: #2f3e36;
-      --highlight: #f0b55c;
-      --success: #7fcf95;
-      --warning: #e7c773;
-      --danger: #f28c7d;
-      --focus: #20331f;
-      --break: #3f3520;
-      --shadow: rgba(0, 0, 0, 0.28);
+      --bg: #181d1a;
+      --panel: #1d2522;
+      --card: #242f2b;
+      --ink: #edf5ee;
+      --muted: #b9c9bb;
+      --border: #37463d;
+      --primary: #8ad8a3;
+      --primary-dark: #69c884;
+      --secondary: #2b3b35;
+      --highlight: #f0bb63;
+      --success: #7ed39a;
+      --warning: #e7cb6c;
+      --danger: #ef8d7d;
+      --focus: #203a28;
+      --break: #413821;
+      --shadow: rgba(0, 0, 0, 0.32);
     }
 
     * { box-sizing: border-box; }
@@ -68,6 +68,10 @@
       margin: 0 0 8px;
     }
 
+    h2 {
+      margin-top: 0;
+    }
+
     p { line-height: 1.6; }
 
     .grid {
@@ -90,13 +94,20 @@
     }
 
     :root[data-theme="dark"] .pet {
-      background: linear-gradient(180deg, #1f3126 0%, #20332a 100%);
+      background: linear-gradient(180deg, #1b2d25 0%, #1f332b 100%);
     }
 
     .frog {
       font-size: 90px;
       margin: 12px 0;
       line-height: 1;
+      display: inline-block;
+      animation: floatFrog 2.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatFrog {
+      0% { transform: translateY(0) rotate(-2deg); }
+      100% { transform: translateY(-8px) rotate(2deg); }
     }
 
     .mood {
@@ -120,7 +131,7 @@
     }
 
     :root[data-theme="dark"] .progress {
-      background: #2a382f;
+      background: #2f3d37;
     }
 
     #bar {
@@ -151,8 +162,8 @@
 
     :root[data-theme="dark"] input,
     :root[data-theme="dark"] select {
-      background: #1a201c;
-      border-color: #405247;
+      background: #171f1b;
+      border-color: #41564d;
       color: var(--ink);
     }
 
@@ -167,7 +178,7 @@
     }
 
     :root[data-theme="dark"] button {
-      color: #0f1d16;
+      color: #102014;
     }
 
     button:hover {
@@ -194,16 +205,12 @@
       color: var(--ink);
     }
 
-    :root[data-theme="dark"] .secondary {
-      color: var(--ink);
-    }
-
     .secondary:hover {
       background: #dae6d7;
     }
 
     :root[data-theme="dark"] .secondary:hover {
-      background: #3a4a41;
+      background: #32463d;
     }
 
     .pill-row {
@@ -266,7 +273,7 @@
     }
 
     :root[data-theme="dark"] .task {
-      border-bottom-color: #2d3933;
+      border-bottom-color: #2b3832;
     }
 
     .task.active {
@@ -277,7 +284,7 @@
     }
 
     :root[data-theme="dark"] .task.active {
-      background: #1d3124;
+      background: #1a2d23;
     }
 
     .task input[type="checkbox"] {
@@ -310,6 +317,13 @@
       color: var(--muted);
     }
 
+    .task-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
     .badge {
       display: inline-block;
       padding: 4px 8px;
@@ -325,9 +339,16 @@
     .badge.medium { background: #fff4da; color: #7a5a15; }
     .badge.high { background: #ffe3df; color: #8f3d32; }
 
-    .mini-btn {
+    .mini-btn,
+    .tiny-btn {
       padding: 7px 10px;
       font-size: 0.8rem;
+      border-radius: 10px;
+    }
+
+    .tiny-btn {
+      padding: 5px 7px;
+      font-size: 0.72rem;
     }
 
     .timer-box {
@@ -399,8 +420,8 @@
     }
 
     :root[data-theme="dark"] .stat {
-      background: #1b2723;
-      border-color: #2c3832;
+      background: #1a2623;
+      border-color: #2c3a35;
     }
 
     .stat strong {
@@ -415,12 +436,129 @@
       font-size: 0.82rem;
     }
 
+    .achievement-list,
+    .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .achievement-item,
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.2);
+    }
+
+    :root[data-theme="dark"] .achievement-item,
+    :root[data-theme="dark"] .history-item {
+      background: rgba(12, 18, 15, 0.22);
+    }
+
+    .achievement-item.locked {
+      opacity: 0.7;
+    }
+
+    .achievement-meta,
+    .history-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .achievement-tag,
+    .history-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .achievement-badge {
+      min-width: 72px;
+      text-align: center;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: var(--secondary);
+      color: var(--ink);
+    }
+
+    .achievement-badge.unlocked {
+      background: var(--focus);
+      color: var(--ink);
+    }
+
     .quote-card p {
       margin: 0 0 12px;
       font-size: 1.05rem;
     }
 
     .hidden { display: none; }
+
+    .boot-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(17, 25, 20, 0.58);
+      z-index: 75;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+
+    .boot-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .boot-card {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 24px;
+      padding: 26px 30px;
+      text-align: center;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+      animation: boot-bounce 1.2s ease-in-out infinite alternate;
+    }
+
+    :root[data-theme="dark"] .boot-card {
+      background: rgba(32, 41, 37, 0.9);
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    .boot-frog {
+      font-size: 5rem;
+      line-height: 1;
+      transform-origin: center;
+      animation: wiggle 0.85s ease-in-out infinite alternate;
+    }
+
+    .boot-text {
+      margin-top: 10px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+
+    @keyframes boot-bounce {
+      0% { transform: translateY(12px) scale(0.96); }
+      100% { transform: translateY(-12px) scale(1.02); }
+    }
+
+    @keyframes wiggle {
+      0% { transform: rotate(-7deg); }
+      100% { transform: rotate(7deg); }
+    }
 
     @media (max-width: 560px) {
       body { padding: 14px; }
@@ -441,6 +579,13 @@
   </style>
 </head>
 <body>
+  <div class="boot-overlay" id="bootOverlay" aria-live="polite">
+    <div class="boot-card">
+      <div class="boot-frog">🐸</div>
+      <div class="boot-text">Waking up your frog...</div>
+    </div>
+  </div>
+
   <main>
     <header>
       <h1>Study a little. Save your frog. 🐸</h1>
@@ -577,6 +722,17 @@
         </div>
       </section>
 
+      <section class="card" aria-labelledby="history-title">
+        <h2 id="history-title">Focus history 📈</h2>
+        <p class="small" id="historySummary">This week: 0 pomodoros</p>
+        <ul id="historyList" class="history-list"></ul>
+      </section>
+
+      <section class="card" aria-labelledby="achievement-title">
+        <h2 id="achievement-title">Frog milestones 🐾</h2>
+        <ul id="achievementList" class="achievement-list"></ul>
+      </section>
+
       <section class="card" aria-labelledby="stats-title">
         <h2 id="stats-title">Today’s progress 📊</h2>
         <div class="stats-grid">
@@ -636,6 +792,13 @@
       { emoji: "🐸👑", label: "Royal frog" }
     ];
 
+    const ACHIEVEMENTS = [
+      { id: "first-hop", label: "First hop", description: "Complete a focus session", value: 1, type: "pomodoros" },
+      { id: "streak-starter", label: "Streak starter", description: "Get 3 consecutive task completions", value: 3, type: "streak" },
+      { id: "frog-mentor", label: "Frog mentor", description: "Earn 250 XP", value: 250, type: "xp" },
+      { id: "goal-crusher", label: "Goal crusher", description: "Hit your daily goal", value: 1, type: "goal" }
+    ];
+
     let state = {};
     let timerInterval = null;
     let remaining = DEFAULTS.defaultFocus * 60;
@@ -673,7 +836,8 @@
         notificationsEnabled: true,
         soundEnabled: true,
         darkMode: false,
-        lastTrackedDate: getTodayKey()
+        lastTrackedDate: getTodayKey(),
+        sessionHistory: []
       };
     }
 
@@ -754,6 +918,98 @@
       }
     }
 
+    function addSessionToHistory() {
+      const todayKey = getTodayKey();
+      const entry = state.sessionHistory.find(item => item.date === todayKey);
+      const focusMinutes = getFocusDuration();
+
+      if (entry) {
+        entry.pomodoros += 1;
+        entry.focusMinutes += focusMinutes;
+      } else {
+        state.sessionHistory.push({ date: todayKey, pomodoros: 1, focusMinutes });
+      }
+    }
+
+    function renderHistory() {
+      const HISTORY_DAYS = 7;
+      const today = new Date();
+      const list = [];
+
+      for (let i = HISTORY_DAYS - 1; i >= 0; i -= 1) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const key = date.toISOString().slice(0, 10);
+        const entry = state.sessionHistory.find(item => item.date === key) || { pomodoros: 0, focusMinutes: 0 };
+        list.push({
+          key,
+          label: date.toLocaleDateString(undefined, { weekday: "short" }),
+          pomodoros: entry.pomodoros,
+          minutes: entry.focusMinutes
+        });
+      }
+
+      const totalPomodoros = list.reduce((sum, item) => sum + item.pomodoros, 0);
+      const totalMinutes = list.reduce((sum, item) => sum + item.minutes, 0);
+      $("historySummary").textContent = `This week: ${totalPomodoros} pomodoros · ${totalMinutes} minutes`;
+
+      const historyList = $("historyList");
+      historyList.replaceChildren();
+
+      list.forEach(item => {
+        const li = document.createElement("li");
+        li.className = "history-item";
+
+        const meta = document.createElement("div");
+        meta.className = "history-meta";
+        meta.innerHTML = `<strong>${item.label}</strong><span class="history-tag">${item.pomodoros} focus blocks · ${item.minutes}m</span>`;
+
+        const tag = document.createElement("div");
+        tag.className = "history-tag";
+        tag.textContent = item.pomodoros > 0 ? "Good work" : "Rest";
+
+        li.append(meta, tag);
+        historyList.append(li);
+      });
+    }
+
+    function getAchievementStatus() {
+      const totalXp = state.xp || 0;
+      const streak = state.streak || 0;
+      const pomodoros = state.pomodoros || 0;
+      const goalHit = state.dailyPomodoros >= state.dailyGoal;
+
+      return {
+        "first-hop": pomodoros >= 1,
+        "streak-starter": streak >= 3,
+        "frog-mentor": totalXp >= 250,
+        "goal-crusher": goalHit
+      };
+    }
+
+    function renderAchievements() {
+      const status = getAchievementStatus();
+      const list = $("achievementList");
+      list.replaceChildren();
+
+      ACHIEVEMENTS.forEach(achievement => {
+        const unlocked = Boolean(status[achievement.id]);
+        const item = document.createElement("li");
+        item.className = `achievement-item ${unlocked ? "" : "locked"}`;
+
+        const meta = document.createElement("div");
+        meta.className = "achievement-meta";
+        meta.innerHTML = `<strong>${achievement.label}</strong><span class="achievement-tag">${achievement.description}</span>`;
+
+        const badge = document.createElement("div");
+        badge.className = `achievement-badge ${unlocked ? "unlocked" : ""}`;
+        badge.textContent = unlocked ? "Unlocked" : "Locked";
+
+        item.append(meta, badge);
+        list.append(item);
+      });
+    }
+
     function loadState() {
       try {
         const saved = JSON.parse(localStorage.getItem("frogSave")) || {};
@@ -764,6 +1020,7 @@
 
         if (!Array.isArray(state.tasks)) state.tasks = [];
         state.tasks = state.tasks.map(normalizeTask).filter(Boolean);
+        if (!Array.isArray(state.sessionHistory)) state.sessionHistory = [];
 
         if (!Number.isFinite(state.xp) || state.xp < 0) state.xp = 0;
         if (!Number.isFinite(state.pomodoros) || state.pomodoros < 0) state.pomodoros = 0;
@@ -832,11 +1089,39 @@
       $("timer").setAttribute("aria-label", `${minutes} minutes and ${seconds} seconds remaining`);
     }
 
+    function moveTask(taskId, direction) {
+      const index = state.tasks.findIndex(task => task.id === taskId);
+      if (index === -1) return;
+      const target = index + direction;
+      if (target < 0 || target >= state.tasks.length) return;
+      const [item] = state.tasks.splice(index, 1);
+      state.tasks.splice(target, 0, item);
+      save();
+      render();
+    }
+
+    function editTask(taskId) {
+      const task = state.tasks.find(item => item.id === taskId);
+      if (!task) return;
+
+      const updatedText = window.prompt("Edit task:", task.text);
+      if (updatedText === null) return;
+      const trimmedText = updatedText.trim();
+      if (!trimmedText) return;
+
+      const nextMinutes = Number(window.prompt("Edit duration in minutes:", String(task.duration)));
+      task.text = trimmedText;
+      task.duration = Number.isFinite(nextMinutes) && nextMinutes > 0 ? nextMinutes : task.duration;
+      state.currentTimerDuration = task.duration;
+      save();
+      render();
+    }
+
     function renderTasks() {
       $("tasks").replaceChildren();
       let done = 0;
 
-      state.tasks.forEach(task => {
+      state.tasks.forEach((task, index) => {
         const row = document.createElement("div");
         row.className = "task" + (task.done ? " done" : "") + (task.id === state.currentTaskId ? " active" : "");
 
@@ -901,6 +1186,26 @@
           render();
         });
 
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "secondary tiny-btn";
+        edit.textContent = "Edit";
+        edit.addEventListener("click", () => editTask(task.id));
+
+        const up = document.createElement("button");
+        up.type = "button";
+        up.className = "secondary tiny-btn";
+        up.textContent = "↑";
+        up.disabled = index === 0;
+        up.addEventListener("click", () => moveTask(task.id, -1));
+
+        const down = document.createElement("button");
+        down.type = "button";
+        down.className = "secondary tiny-btn";
+        down.textContent = "↓";
+        down.disabled = index === state.tasks.length - 1;
+        down.addEventListener("click", () => moveTask(task.id, 1));
+
         const del = document.createElement("button");
         del.type = "button";
         del.className = "secondary mini-btn";
@@ -914,7 +1219,7 @@
           render();
         });
 
-        actions.append(activate, del);
+        actions.append(activate, edit, up, down, del);
         row.append(check, textWrap, actions);
         $("tasks").append(row);
 
@@ -1012,6 +1317,8 @@
       renderStats();
       renderModeButtons();
       renderGoalStatus();
+      renderHistory();
+      renderAchievements();
       renderSettings();
       setDurationFromMode();
     }
@@ -1077,6 +1384,7 @@
         state.completedFocusSessions += 1;
         state.focusMinutes += getFocusDuration();
         state.totalFocusMinutes += getFocusDuration();
+        addSessionToHistory();
 
         if (task) {
           task.completedPomodoros += 1;
@@ -1259,6 +1567,12 @@
         $("quote").textContent = options[Math.floor(Math.random() * options.length)];
       });
     }
+
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        $("bootOverlay").classList.add("hidden");
+      }, 1200);
+    });
 
     loadState();
     attachEvents();
