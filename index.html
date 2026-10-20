@@ -557,9 +557,6 @@
         if (!state.currentTaskId && state.tasks.length) state.currentTaskId = state.tasks[0].id;
       } catch {
         state = createDefaultState();
-        if (state.tasks.length === 0 && !state.currentTaskId) {
-          state.currentTaskId = null;
-        }
       }
     }
 
@@ -800,14 +797,20 @@
     }
 
     function switchMode(nextMode) {
-      if (timerInterval !== null) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
+      if (nextMode === state.mode) return;
+
+      const wasRunning = timerInterval !== null;
       state.mode = nextMode;
-      remaining = getFocusDuration() * 60;
-      showTime();
-      $("timerMessage").textContent = nextMode === "focus" ? "Focus mode: activated. 🌱" : "Break mode: deep breath. 🌿";
+
+      if (!wasRunning) {
+        remaining = getFocusDuration() * 60;
+        showTime();
+      }
+
+      $("timerMessage").textContent = nextMode === "focus"
+        ? "Focus mode: activated. 🌱"
+        : "Break mode: deep breath. 🌿";
+
       save();
       render();
     }
