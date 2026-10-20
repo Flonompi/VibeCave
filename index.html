@@ -526,6 +526,15 @@
       return FROG_STAGES[index];
     }
 
+    function getDisplayedFocusMinutes() {
+      if (state.mode !== "focus" || timerInterval === null) {
+        return state.totalFocusMinutes || 0;
+      }
+      const currentSessionMinutes = getFocusDuration();
+      const elapsedMinutes = Math.max(0, currentSessionMinutes - Math.ceil(remaining / 60));
+      return (state.totalFocusMinutes || 0) + elapsedMinutes;
+    }
+
     function loadState() {
       try {
         const saved = JSON.parse(localStorage.getItem("frogSave")) || {};
@@ -720,7 +729,8 @@
     }
 
     function renderStats() {
-      $("focusMinutes").textContent = `${state.totalFocusMinutes || 0}m`;
+      const displayedFocus = getDisplayedFocusMinutes();
+      $("focusMinutes").textContent = `${displayedFocus}m`;
       $("pomodoroCount").textContent = state.pomodoros || 0;
       $("doneCount").textContent = state.completedTasks || 0;
       $("streakCount").textContent = state.streak || 0;
@@ -847,6 +857,7 @@
       timerInterval = setInterval(() => {
         remaining -= 1;
         showTime();
+        renderStats();
 
         if (remaining <= 0) {
           clearInterval(timerInterval);
@@ -872,6 +883,7 @@
 
       remaining = getFocusDuration() * 60;
       showTime();
+      renderStats();
       $("timerMessage").textContent = state.mode === "focus" ? "Timer reset. Ready when you are." : "Break timer reset. Refresh and breathe.";
     }
 
