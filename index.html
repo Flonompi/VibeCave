@@ -297,6 +297,33 @@
       padding: 11px 14px;
     }
 
+    .settings-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-grid label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .settings-grid .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: var(--ink);
+      padding: 4px 0;
+    }
+
+    .settings-grid input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      accent-color: var(--primary);
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -421,6 +448,64 @@
           <button id="reset" class="secondary">Reset</button>
         </div>
         <p id="timerMessage" aria-live="polite" class="small">Ready when you are.</p>
+        <p id="goalStatus" aria-live="polite" class="small">Daily goal: 0/4 pomodoros</p>
+      </section>
+
+      <section class="card" aria-labelledby="settings-title">
+        <h2 id="settings-title">Frog settings ⚙️</h2>
+        <div class="settings-grid">
+          <label for="defaultFocusLength">
+            Default focus length
+            <select id="defaultFocusLength" aria-label="Default focus length">
+              <option value="15">15 minutes</option>
+              <option value="25">25 minutes</option>
+              <option value="35">35 minutes</option>
+              <option value="50">50 minutes</option>
+            </select>
+          </label>
+
+          <label for="shortBreakLength">
+            Short break length
+            <select id="shortBreakLength" aria-label="Short break length">
+              <option value="5">5 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="30">30 minutes</option>
+            </select>
+          </label>
+
+          <label for="longBreakLength">
+            Long break length
+            <select id="longBreakLength" aria-label="Long break length">
+              <option value="5">5 minutes</option>
+              <option value="10">10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="30">30 minutes</option>
+            </select>
+          </label>
+
+          <label for="dailyGoalInput">
+            Daily goal
+            <input id="dailyGoalInput" type="number" min="1" max="12" step="1" value="4" aria-label="Daily goal">
+          </label>
+
+          <label class="checkbox-row" for="autoStartNext">
+            <input id="autoStartNext" type="checkbox">
+            Auto-start next session
+          </label>
+
+          <label class="checkbox-row" for="notificationsEnabled">
+            <input id="notificationsEnabled" type="checkbox">
+            Browser notifications
+          </label>
+
+          <label class="checkbox-row" for="soundEnabled">
+            <input id="soundEnabled" type="checkbox">
+            Sound alerts
+          </label>
+        </div>
       </section>
 
       <section class="card" aria-labelledby="stats-title">
@@ -486,6 +571,12 @@
     let timerInterval = null;
     let remaining = DEFAULTS.defaultFocus * 60;
 
+    function getTodayKey() {
+      const d = new Date();
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+      return local.toISOString().slice(0, 10);
+    }
+
     function createDefaultState() {
       return {
         tasks: [],
@@ -493,6 +584,7 @@
         currentTaskId: null,
         mode: "focus",
         pomodoros: 0,
+        dailyPomodoros: 0,
         completedTasks: 0,
         focusMinutes: 0,
         streak: 0,
@@ -500,8 +592,14 @@
         completedFocusSessions: 0,
         totalFocusMinutes: 0,
         currentTimerDuration: DEFAULTS.defaultFocus,
+        defaultFocusMinutes: DEFAULTS.defaultFocus,
         shortBreakMinutes: DEFAULTS.shortBreak,
-        longBreakMinutes: DEFAULTS.longBreak
+        longBreakMinutes: DEFAULTS.longBreak,
+        dailyGoal: 4,
+        autoStartNext: false,
+        notificationsEnabled: true,
+        soundEnabled: true,
+        lastTrackedDate: getTodayKey()
       };
     }
 
@@ -535,6 +633,53 @@
       return (state.totalFocusMinutes || 0) + elapsedMinutes;
     }
 
+    function requestNotificationPermission() {
+      if (!("Notification" in window)) return Promise.resolve(false);
+      if (Notification.permission === "granted") return Promise.resolve(true);
+      if (Notification.permission === "denied") return Promise.resolve(false);
+      return Notification.requestPermission().then(permission => permission === "granted");
+    }
+
+    function maybeSendNotification(title, body) {
+      if (!state.notificationsEnabled || !("Notification" in window)) return;
+      if (Notification.permission === "granted") {
+        new Notification(title, { body });
+      }
+    }
+
+    function playAlertTone() {
+      if (!state.soundEnabled) return;
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtor) return;
+
+      const audioContext = new AudioCtor();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.value = 660;
+      gainNode.gain.value = 0.03;
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.12);
+      setTimeout(() => {
+        if (audioContext.state === "running") {
+          audioContext.close();
+        }
+      }, 200);
+    }
+
+    function syncDailyProgress() {
+      const todayKey = getTodayKey();
+      if (state.lastTrackedDate !== todayKey) {
+        state.dailyPomodoros = 0;
+        state.lastTrackedDate = todayKey;
+      }
+    }
+
     function loadState() {
       try {
         const saved = JSON.parse(localStorage.getItem("frogSave")) || {};
@@ -547,13 +692,24 @@
         state.tasks = state.tasks.map(normalizeTask).filter(Boolean);
 
         if (!Number.isFinite(state.xp) || state.xp < 0) state.xp = 0;
+        if (!Number.isFinite(state.pomodoros) || state.pomodoros < 0) state.pomodoros = 0;
+        if (!Number.isFinite(state.dailyPomodoros) || state.dailyPomodoros < 0) state.dailyPomodoros = 0;
         if (!Number.isFinite(state.completedFocusSessions) || state.completedFocusSessions < 0) state.completedFocusSessions = 0;
         if (!Number.isFinite(state.focusMinutes) || state.focusMinutes < 0) state.focusMinutes = 0;
         if (!Number.isFinite(state.totalFocusMinutes) || state.totalFocusMinutes < 0) state.totalFocusMinutes = 0;
         if (!Number.isFinite(state.streak) || state.streak < 0) state.streak = 0;
-        if (!Number.isFinite(state.currentTimerDuration) || state.currentTimerDuration <= 0) state.currentTimerDuration = DEFAULTS.defaultFocus;
+        if (!Number.isFinite(state.defaultFocusMinutes) || state.defaultFocusMinutes <= 0) state.defaultFocusMinutes = DEFAULTS.defaultFocus;
         if (!Number.isFinite(state.shortBreakMinutes) || state.shortBreakMinutes <= 0) state.shortBreakMinutes = DEFAULTS.shortBreak;
         if (!Number.isFinite(state.longBreakMinutes) || state.longBreakMinutes <= 0) state.longBreakMinutes = DEFAULTS.longBreak;
+        if (!Number.isFinite(state.currentTimerDuration) || state.currentTimerDuration <= 0) state.currentTimerDuration = state.defaultFocusMinutes;
+        if (!Number.isFinite(state.dailyGoal) || state.dailyGoal < 1) state.dailyGoal = 4;
+        if (typeof state.autoStartNext !== "boolean") state.autoStartNext = false;
+        if (typeof state.notificationsEnabled !== "boolean") state.notificationsEnabled = true;
+        if (typeof state.soundEnabled !== "boolean") state.soundEnabled = true;
+        if (!state.lastTrackedDate) state.lastTrackedDate = getTodayKey();
+
+        syncDailyProgress();
+
         if (!state.currentTaskId && state.tasks.length) state.currentTaskId = state.tasks[0].id;
       } catch {
         state = createDefaultState();
@@ -575,7 +731,7 @@
     function getFocusDuration() {
       const activeTask = getSelectedTask();
       if (state.mode === "focus") {
-        return activeTask ? activeTask.duration : state.currentTimerDuration || DEFAULTS.defaultFocus;
+        return activeTask ? activeTask.duration : state.currentTimerDuration || state.defaultFocusMinutes || DEFAULTS.defaultFocus;
       }
 
       const completed = state.completedFocusSessions || 0;
@@ -733,6 +889,13 @@
       $("streakCount").textContent = state.streak || 0;
     }
 
+    function renderGoalStatus() {
+      syncDailyProgress();
+      const progress = Math.min(state.dailyPomodoros, state.dailyGoal);
+      const suffix = progress >= state.dailyGoal ? " — goal crushed!" : "";
+      $("goalStatus").textContent = `Daily goal: ${state.dailyPomodoros}/${state.dailyGoal} pomodoros${suffix}`;
+    }
+
     function renderModeButtons() {
       document.querySelectorAll(".mode-btn").forEach(button => {
         const isActive = button.dataset.mode === state.mode;
@@ -753,12 +916,24 @@
       $("breakLength").value = String(state.shortBreakMinutes);
     }
 
+    function renderSettings() {
+      $("defaultFocusLength").value = String(state.defaultFocusMinutes);
+      $("shortBreakLength").value = String(state.shortBreakMinutes);
+      $("longBreakLength").value = String(state.longBreakMinutes);
+      $("dailyGoalInput").value = String(state.dailyGoal);
+      $("autoStartNext").checked = Boolean(state.autoStartNext);
+      $("notificationsEnabled").checked = Boolean(state.notificationsEnabled);
+      $("soundEnabled").checked = Boolean(state.soundEnabled);
+    }
+
     function render() {
       renderTasks();
       renderXP();
       renderMood();
       renderStats();
       renderModeButtons();
+      renderGoalStatus();
+      renderSettings();
       setDurationFromMode();
     }
 
@@ -819,6 +994,7 @@
       if (state.mode === "focus") {
         const task = getSelectedTask();
         state.pomodoros += 1;
+        state.dailyPomodoros += 1;
         state.completedFocusSessions += 1;
         state.focusMinutes += getFocusDuration();
         state.totalFocusMinutes += getFocusDuration();
@@ -836,16 +1012,25 @@
           ? `Focus complete! ${task.text} deserves a breather.`
           : "Focus complete! Take a well-earned break.";
 
+        maybeSendNotification("Focus session complete!", task ? `${task.text} is finished for now.` : "Time for a break.");
+        playAlertTone();
+
         state.mode = "break";
         remaining = (state.completedFocusSessions % DEFAULTS.roundsBeforeLongBreak === 0 ? state.longBreakMinutes : state.shortBreakMinutes) * 60;
       } else {
         $("timerMessage").textContent = "Break over — back to work, little frog.";
+        maybeSendNotification("Break over!", "Back to focus mode.");
+        playAlertTone();
         state.mode = "focus";
-        remaining = (getSelectedTask() ? getSelectedTask().duration : state.currentTimerDuration || DEFAULTS.defaultFocus) * 60;
+        remaining = (getSelectedTask() ? getSelectedTask().duration : state.currentTimerDuration || state.defaultFocusMinutes || DEFAULTS.defaultFocus) * 60;
       }
 
       save();
       render();
+
+      if (state.autoStartNext) {
+        setTimeout(() => startTimer(), 300);
+      }
     }
 
     function startTimer() {
@@ -912,7 +1097,75 @@
         }
       });
 
-      $("start").addEventListener("click", startTimer);
+      $("defaultFocusLength").addEventListener("change", event => {
+        const nextMinutes = Number(event.target.value);
+        if (!Number.isFinite(nextMinutes) || nextMinutes <= 0) return;
+        state.defaultFocusMinutes = nextMinutes;
+        state.currentTimerDuration = nextMinutes;
+        if (!getSelectedTask() && state.mode === "focus") {
+          remaining = nextMinutes * 60;
+          showTime();
+        }
+        save();
+        render();
+      });
+
+      $("shortBreakLength").addEventListener("change", event => {
+        const nextMinutes = Number(event.target.value);
+        if (!Number.isFinite(nextMinutes) || nextMinutes <= 0) return;
+        state.shortBreakMinutes = nextMinutes;
+        if (state.mode === "break" && !timerInterval) {
+          remaining = nextMinutes * 60;
+          showTime();
+        }
+        save();
+        render();
+      });
+
+      $("longBreakLength").addEventListener("change", event => {
+        const nextMinutes = Number(event.target.value);
+        if (!Number.isFinite(nextMinutes) || nextMinutes <= 0) return;
+        state.longBreakMinutes = nextMinutes;
+        if (state.mode === "break" && !timerInterval) {
+          remaining = nextMinutes * 60;
+          showTime();
+        }
+        save();
+        render();
+      });
+
+      $("dailyGoalInput").addEventListener("change", event => {
+        const nextGoal = Number(event.target.value);
+        if (!Number.isFinite(nextGoal) || nextGoal < 1) return;
+        state.dailyGoal = Math.min(12, Math.max(1, Math.round(nextGoal)));
+        save();
+        render();
+      });
+
+      $("autoStartNext").addEventListener("change", event => {
+        state.autoStartNext = Boolean(event.target.checked);
+        save();
+      });
+
+      $("notificationsEnabled").addEventListener("change", event => {
+        state.notificationsEnabled = Boolean(event.target.checked);
+        if (state.notificationsEnabled) {
+          requestNotificationPermission();
+        }
+        save();
+      });
+
+      $("soundEnabled").addEventListener("change", event => {
+        state.soundEnabled = Boolean(event.target.checked);
+        save();
+      });
+
+      $("start").addEventListener("click", () => {
+        if (state.notificationsEnabled) {
+          requestNotificationPermission();
+        }
+        startTimer();
+      });
       $("pause").addEventListener("click", pauseTimer);
       $("reset").addEventListener("click", resetTimer);
 
