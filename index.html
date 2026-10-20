@@ -401,14 +401,16 @@
         </div>
         <div id="activeTaskLabel" class="small">No active task selected</div>
 
-        <label for="breakLength">Break length</label>
-        <select id="breakLength" aria-label="Choose break length">
-          <option value="5" selected>5 minutes</option>
-          <option value="10">10 minutes</option>
-          <option value="15">15 minutes</option>
-          <option value="20">20 minutes</option>
-          <option value="30">30 minutes</option>
-        </select>
+        <div id="breakSettings" class="hidden">
+          <label for="breakLength">Break length</label>
+          <select id="breakLength" aria-label="Choose break length">
+            <option value="5" selected>5 minutes</option>
+            <option value="10">10 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="20">20 minutes</option>
+            <option value="30">30 minutes</option>
+          </select>
+        </div>
 
         <div class="timer-box">
           <div class="timer" id="timer" role="timer" aria-live="polite" aria-label="25 minutes remaining">25:00</div>
@@ -738,6 +740,10 @@
       } else {
         $("activeTaskLabel").textContent = "No active task selected";
       }
+
+      const breakSettings = $("breakSettings");
+      breakSettings.classList.toggle("hidden", state.mode !== "break");
+      $("breakLength").value = String(state.shortBreakMinutes);
     }
 
     function render() {
@@ -746,7 +752,6 @@
       renderMood();
       renderStats();
       renderModeButtons();
-      $("breakLength").value = String(state.shortBreakMinutes);
       setDurationFromMode();
     }
 
