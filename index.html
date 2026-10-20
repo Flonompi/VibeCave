@@ -24,6 +24,25 @@
       --shadow: rgba(33, 56, 34, 0.08);
     }
 
+    :root[data-theme="dark"] {
+      --bg: #1a1d1a;
+      --panel: #1f2521;
+      --card: #252d29;
+      --ink: #edf4eb;
+      --muted: #bac9ba;
+      --border: #36453a;
+      --primary: #7dd58f;
+      --primary-dark: #5bb878;
+      --secondary: #2f3e36;
+      --highlight: #f0b55c;
+      --success: #7fcf95;
+      --warning: #e7c773;
+      --danger: #f28c7d;
+      --focus: #20331f;
+      --break: #3f3520;
+      --shadow: rgba(0, 0, 0, 0.28);
+    }
+
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -31,6 +50,7 @@
       font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--ink);
+      transition: background 0.2s ease, color 0.2s ease;
     }
 
     main {
@@ -69,6 +89,10 @@
       text-align: center;
     }
 
+    :root[data-theme="dark"] .pet {
+      background: linear-gradient(180deg, #1f3126 0%, #20332a 100%);
+    }
+
     .frog {
       font-size: 90px;
       margin: 12px 0;
@@ -93,6 +117,10 @@
       border-radius: 10px;
       overflow: hidden;
       margin: 12px 0;
+    }
+
+    :root[data-theme="dark"] .progress {
+      background: #2a382f;
     }
 
     #bar {
@@ -121,6 +149,13 @@
       color: var(--ink);
     }
 
+    :root[data-theme="dark"] input,
+    :root[data-theme="dark"] select {
+      background: #1a201c;
+      border-color: #405247;
+      color: var(--ink);
+    }
+
     button {
       border: 0;
       border-radius: 12px;
@@ -129,6 +164,10 @@
       cursor: pointer;
       font-weight: 650;
       transition: filter 0.15s ease, transform 0.15s ease;
+    }
+
+    :root[data-theme="dark"] button {
+      color: #0f1d16;
     }
 
     button:hover {
@@ -155,8 +194,16 @@
       color: var(--ink);
     }
 
+    :root[data-theme="dark"] .secondary {
+      color: var(--ink);
+    }
+
     .secondary:hover {
       background: #dae6d7;
+    }
+
+    :root[data-theme="dark"] .secondary:hover {
+      background: #3a4a41;
     }
 
     .pill-row {
@@ -179,6 +226,10 @@
     .mode-btn.active {
       background: var(--primary);
       color: #fff;
+    }
+
+    :root[data-theme="dark"] .mode-btn.active {
+      color: #0f1d16;
     }
 
     .task-form {
@@ -214,11 +265,19 @@
       overflow-wrap: anywhere;
     }
 
+    :root[data-theme="dark"] .task {
+      border-bottom-color: #2d3933;
+    }
+
     .task.active {
       background: #f4fbf0;
       border-radius: 10px;
       padding-left: 10px;
       border-bottom-color: transparent;
+    }
+
+    :root[data-theme="dark"] .task.active {
+      background: #1d3124;
     }
 
     .task input[type="checkbox"] {
@@ -337,6 +396,11 @@
       border-radius: 16px;
       padding: 14px 12px;
       text-align: center;
+    }
+
+    :root[data-theme="dark"] .stat {
+      background: #1b2723;
+      border-color: #2c3832;
     }
 
     .stat strong {
@@ -505,6 +569,11 @@
             <input id="soundEnabled" type="checkbox">
             Sound alerts
           </label>
+
+          <label class="checkbox-row" for="darkModeToggle">
+            <input id="darkModeToggle" type="checkbox">
+            Dark mode
+          </label>
         </div>
       </section>
 
@@ -571,6 +640,10 @@
     let timerInterval = null;
     let remaining = DEFAULTS.defaultFocus * 60;
 
+    function applyTheme() {
+      document.documentElement.dataset.theme = state.darkMode ? "dark" : "light";
+    }
+
     function getTodayKey() {
       const d = new Date();
       const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -599,6 +672,7 @@
         autoStartNext: false,
         notificationsEnabled: true,
         soundEnabled: true,
+        darkMode: false,
         lastTrackedDate: getTodayKey()
       };
     }
@@ -706,13 +780,16 @@
         if (typeof state.autoStartNext !== "boolean") state.autoStartNext = false;
         if (typeof state.notificationsEnabled !== "boolean") state.notificationsEnabled = true;
         if (typeof state.soundEnabled !== "boolean") state.soundEnabled = true;
+        if (typeof state.darkMode !== "boolean") state.darkMode = false;
         if (!state.lastTrackedDate) state.lastTrackedDate = getTodayKey();
 
         syncDailyProgress();
+        applyTheme();
 
         if (!state.currentTaskId && state.tasks.length) state.currentTaskId = state.tasks[0].id;
       } catch {
         state = createDefaultState();
+        applyTheme();
       }
     }
 
@@ -924,6 +1001,8 @@
       $("autoStartNext").checked = Boolean(state.autoStartNext);
       $("notificationsEnabled").checked = Boolean(state.notificationsEnabled);
       $("soundEnabled").checked = Boolean(state.soundEnabled);
+      $("darkModeToggle").checked = Boolean(state.darkMode);
+      applyTheme();
     }
 
     function render() {
@@ -1157,6 +1236,12 @@
 
       $("soundEnabled").addEventListener("change", event => {
         state.soundEnabled = Boolean(event.target.checked);
+        save();
+      });
+
+      $("darkModeToggle").addEventListener("change", event => {
+        state.darkMode = Boolean(event.target.checked);
+        applyTheme();
         save();
       });
 
