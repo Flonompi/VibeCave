@@ -1,258 +1,855 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Procrastination Pet 🐸</title>
-<style>
-:root {
-  font-family: system-ui, sans-serif;
-  color: #203b2b;
-  background: #f8f5e9;
-}
-* { box-sizing: border-box; }
-body { margin: 0; padding: 24px; }
-main { max-width: 850px; margin: auto; }
-header { text-align: center; margin: 20px 0 30px; }
-h1 { font-size: clamp(2rem, 6vw, 3.2rem); margin-bottom: 8px; }
-p { line-height: 1.6; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 18px; }
-.card { background: white; border: 1px solid #dce5d8; border-radius: 20px; padding: 22px; }
-.pet { text-align: center; background: #e4efd9; }
-.frog { font-size: 90px; margin: 10px; }
-.mood { font-weight: 700; }
-input, button, select { font: inherit; }
-input, select { width: 100%; padding: 12px; border: 2px solid #b8c9b5; border-radius: 10px; margin: 8px 0; }
-button { padding: 11px 14px; border: 0; border-radius: 10px; background: #285c3b; color: white; cursor: pointer; font-weight: 650; }
-button:hover { background: #19452b; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #d18a24; outline-offset: 3px; }
-button:disabled { opacity: .5; cursor: not-allowed; }
-.secondary { background: #e7eee3; color: #203b2b; }
-.task { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #eee; overflow-wrap: anywhere; }
-.task span { flex: 1; }
-.task.done span { text-decoration: line-through; opacity: .65; }
-.task button { padding: 7px 10px; }
-.progress { height: 12px; background: #dce5d8; border-radius: 10px; overflow: hidden; margin: 12px 0; }
-#bar { height: 100%; width: 0; background: #438655; transition: width .3s; }
-.timer { font-size: 2.6rem; font-weight: 750; margin: 15px 0; font-variant-numeric: tabular-nums; }
-.small { font-size: .9rem; color: #4b6150; }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Procrastination Pet 🐸</title>
+  <style>
+    :root {
+      --bg: #f8f5e9;
+      --panel: #fffdf8;
+      --card: #ffffff;
+      --ink: #203b2b;
+      --muted: #4b6150;
+      --border: #dce5d8;
+      --primary: #285c3b;
+      --primary-dark: #19452b;
+      --secondary: #e7eee3;
+      --highlight: #d18a24;
+      --success: #438655;
+      --warning: #e1b55e;
+      --danger: #c55b4d;
+      --focus: #dff3d8;
+      --break: #fff0cf;
+      --shadow: rgba(33, 56, 34, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin: 20px 0 30px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      margin: 0 0 8px;
+    }
+
+    p { line-height: 1.6; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 12px 34px var(--shadow);
+    }
+
+    .pet {
+      background: linear-gradient(180deg, #ebf7e6 0%, #e4efd9 100%);
+      text-align: center;
+    }
+
+    .frog {
+      font-size: 90px;
+      margin: 12px 0;
+      line-height: 1;
+    }
+
+    .mood {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+
+    .meta-label {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 8px;
+    }
+
+    .progress {
+      height: 12px;
+      background: #dce5d8;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    #bar {
+      height: 100%;
+      width: 0;
+      background: var(--success);
+      transition: width 0.3s ease;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    input, button, select {
+      font: inherit;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #b8c9b5;
+      border-radius: 10px;
+      margin: 8px 0;
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-weight: 650;
+      transition: filter 0.15s ease, transform 0.15s ease;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+      filter: brightness(1.02);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid var(--highlight);
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .secondary {
+      background: var(--secondary);
+      color: var(--ink);
+    }
+
+    .secondary:hover {
+      background: #dae6d7;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      border-radius: 999px;
+      background: var(--secondary);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .mode-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .task-form {
+      display: grid;
+      gap: 8px;
+    }
+
+    .task-form-row {
+      display: grid;
+      grid-template-columns: 1fr 130px;
+      gap: 10px;
+    }
+
+    .task-form button {
+      width: 100%;
+      padding: 12px 14px;
+      margin-top: 2px;
+    }
+
+    .task-list {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 8px 10px 0;
+      border-bottom: 1px solid #edeae0;
+      overflow-wrap: anywhere;
+    }
+
+    .task.active {
+      background: #f4fbf0;
+      border-radius: 10px;
+      padding-left: 10px;
+      border-bottom-color: transparent;
+    }
+
+    .task input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      accent-color: var(--success);
+    }
+
+    .task-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .task-text {
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .task.done .task-text {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--secondary);
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .badge.low { background: #e5f0ff; color: #294f8e; }
+    .badge.medium { background: #fff4da; color: #7a5a15; }
+    .badge.high { background: #ffe3df; color: #8f3d32; }
+
+    .mini-btn {
+      padding: 7px 10px;
+      font-size: 0.8rem;
+    }
+
+    .timer-box {
+      text-align: center;
+      margin: 10px 0 16px;
+    }
+
+    .timer {
+      font-size: clamp(2.4rem, 5vw, 3.4rem);
+      font-weight: 800;
+      margin: 18px 0;
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .button-row button {
+      flex: 1;
+      min-width: 110px;
+      padding: 11px 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      background: #f8faf7;
+      border: 1px solid #edf0ea;
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.5rem;
+      margin-top: 4px;
+      color: var(--primary);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .quote-card p {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 560px) {
+      body { padding: 14px; }
+      .task { grid-template-columns: auto 1fr; }
+      .task-actions { grid-column: 2 / -1; display: flex; justify-content: flex-end; gap: 8px; }
+      .task-form-row { grid-template-columns: 1fr; }
+      .button-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .button-row button { min-width: auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
 <body>
-<main>
-<header>
-  <h1>Study a little. Save your frog. 🐸</h1>
-  <p>Your deadlines are crying. Your frog is counting on you.</p>
-</header>
+  <main>
+    <header>
+      <h1>Study a little. Save your frog. 🐸</h1>
+      <p>Your deadlines are crying. Your frog is counting on you.</p>
+    </header>
 
-<div class="grid">
-<section class="card pet" aria-labelledby="pet-title">
-  <h2 id="pet-title">Your study buddy</h2>
-  <div class="frog" id="frog" role="img" aria-label="Happy frog">🐸</div>
-  <p class="mood" id="mood" aria-live="polite">Ready to conquer the day!</p>
-  <p id="level">Level 1 · Frog beginner</p>
-  <p><strong><span id="xp">0</span> XP</strong></p>
-  <div class="progress" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" id="xpProgress">
-    <div id="bar"></div>
-  </div>
-  <p class="small" id="reward">Complete tasks to earn rewards!</p>
-</section>
+    <div class="grid">
+      <section class="card pet" aria-labelledby="pet-title">
+        <h2 id="pet-title">Your study buddy</h2>
+        <div class="frog" id="frog" role="img" aria-label="Happy frog">🐸</div>
+        <p class="mood" id="mood" aria-live="polite">Ready to conquer the day!</p>
+        <div id="level">Level 1 · Frog beginner</div>
+        <p><strong><span id="xp">0</span> XP</strong></p>
+        <div class="progress" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" id="xpProgress">
+          <div id="bar"></div>
+        </div>
+        <p class="small" id="reward">Complete tasks to earn rewards!</p>
+      </section>
 
-<section class="card" aria-labelledby="tasks-title">
-  <h2 id="tasks-title">Your missions 📚</h2>
-  <form id="taskForm">
-    <label for="taskInput">What do you need to do?</label>
-    <input id="taskInput" maxlength="100" placeholder="e.g. Study statistics" required>
-    <button type="submit">+ Add mission</button>
-  </form>
-  <p id="taskSummary" class="small" aria-live="polite">No missions yet. Let's start!</p>
-  <div id="tasks"></div>
-</section>
+      <section class="card" aria-labelledby="tasks-title">
+        <h2 id="tasks-title">Your missions 📚</h2>
+        <form id="taskForm" class="task-form">
+          <label for="taskInput">What do you need to do?</label>
+          <div class="task-form-row">
+            <input id="taskInput" maxlength="100" placeholder="e.g. Study statistics" required>
+            <select id="taskDuration" aria-label="Task duration">
+              <option value="15">15 min</option>
+              <option value="25" selected>25 min</option>
+              <option value="35">35 min</option>
+              <option value="50">50 min</option>
+            </select>
+          </div>
+          <select id="taskPriority" aria-label="Task priority">
+            <option value="low">Low priority</option>
+            <option value="medium" selected>Medium priority</option>
+            <option value="high">High priority</option>
+          </select>
+          <button type="submit">+ Add mission</button>
+        </form>
+        <p id="taskSummary" class="small" aria-live="polite">No missions yet. Let's start!</p>
+        <div id="tasks" class="task-list"></div>
+      </section>
 
-<section class="card" aria-labelledby="timer-title">
-  <h2 id="timer-title">Focus zone ⏳</h2>
-  <p>One little session at a time.</p>
-  <label for="timerLength">Session length</label>
-  <select id="timerLength" aria-label="Choose focus timer length">
-    <option value="25">25 minutes</option>
-    <option value="50">50 minutes</option>
-  </select>
-  <div class="timer" id="timer" role="timer" aria-label="25 minutes remaining">25:00</div>
-  <button id="start">Start</button>
-  <button id="pause" class="secondary">Pause</button>
-  <button id="reset" class="secondary">Reset</button>
-  <p id="timerMessage" aria-live="polite" class="small">Ready when you are.</p>
-</section>
+      <section class="card" aria-labelledby="timer-title">
+        <h2 id="timer-title">Focus zone ⏳</h2>
+        <div class="pill-row" aria-label="Timer modes">
+          <button type="button" class="mode-btn active" data-mode="focus">Focus</button>
+          <button type="button" class="mode-btn" data-mode="break">Break</button>
+        </div>
+        <div id="activeTaskLabel" class="small">No active task selected</div>
+        <div class="timer-box">
+          <div class="timer" id="timer" role="timer" aria-live="polite" aria-label="25 minutes remaining">25:00</div>
+        </div>
+        <div class="button-row">
+          <button id="start">Start</button>
+          <button id="pause" class="secondary">Pause</button>
+          <button id="reset" class="secondary">Reset</button>
+        </div>
+        <p id="timerMessage" aria-live="polite" class="small">Ready when you are.</p>
+      </section>
 
-<section class="card">
-  <h2>Today's wisdom ✨</h2>
-  <p id="quote">You don't need to be perfect. You just need to begin.</p>
-  <button id="newQuote" class="secondary">Give me motivation</button>
-</section>
-</div>
-</main>
+      <section class="card" aria-labelledby="stats-title">
+        <h2 id="stats-title">Today’s progress 📊</h2>
+        <div class="stats-grid">
+          <div class="stat">
+            <span>Focus time</span>
+            <strong id="focusMinutes">0m</strong>
+          </div>
+          <div class="stat">
+            <span>Pomodoros</span>
+            <strong id="pomodoroCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>Tasks done</span>
+            <strong id="doneCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>Current streak</span>
+            <strong id="streakCount">0</strong>
+          </div>
+        </div>
+      </section>
 
-<script>
-const $ = id => document.getElementById(id);
-const quotes = [
-  "You don't need to be perfect. You just need to begin.",
-  "Future you is already saying thank you.",
-  "Five minutes of effort beats an hour of worrying.",
-  "Your frog believes in you. No pressure.",
-  "Done is better than perfect."
-];
+      <section class="card quote-card">
+        <h2>Today's wisdom ✨</h2>
+        <p id="quote">You don't need to be perfect. You just need to begin.</p>
+        <button id="newQuote" class="secondary">Give me motivation</button>
+      </section>
+    </div>
+  </main>
 
-let state;
-try {
-  state = JSON.parse(localStorage.getItem("frogSave")) || {};
-} catch {
-  state = {};
-}
-if (!Array.isArray(state.tasks)) state.tasks = [];
-if (!Number.isFinite(state.xp) || state.xp < 0) state.xp = 0;
-if (!Array.isArray(state.rewards)) state.rewards = [];
-if (!Number.isFinite(state.timerMinutes) || ![25, 50].includes(state.timerMinutes)) state.timerMinutes = 25;
+  <script>
+    const $ = id => document.getElementById(id);
 
-function save() {
-  try {
-    localStorage.setItem("frogSave", JSON.stringify(state));
-  } catch {
-    $("mood").textContent = "Progress may not be saved in this browser.";
-  }
-}
+    const quotes = [
+      "You don't need to be perfect. You just need to begin.",
+      "Future you is already saying thank you.",
+      "Five minutes of effort beats an hour of worrying.",
+      "Your frog believes in you. No pressure.",
+      "Done is better than perfect.",
+      "A small session still counts as progress.",
+      "The task is not to be perfect — it is to begin."
+    ];
 
-function render() {
-  $("tasks").replaceChildren();
-  let done = 0;
+    const DEFAULTS = {
+      defaultFocus: 25,
+      shortBreak: 5,
+      longBreak: 15,
+      roundsBeforeLongBreak: 4
+    };
 
-  state.tasks.forEach(task => {
-    const row = document.createElement("div");
-    row.className = "task" + (task.done ? " done" : "");
+    let state = {};
+    let timerInterval = null;
+    let remaining = DEFAULTS.defaultFocus * 60;
 
-    const check = document.createElement("input");
-    check.type = "checkbox";
-    check.checked = task.done;
-    check.setAttribute("aria-label", "Complete " + task.text);
-    check.style.width = "auto";
-    check.addEventListener("change", () => {
-      task.done = check.checked;
-      if (task.done) state.xp += 10;
-      else state.xp = Math.max(0, state.xp - 10);
-      save();
-      render();
-    });
-
-    const text = document.createElement("span");
-    text.textContent = task.text;
-
-    const del = document.createElement("button");
-    del.textContent = "Delete";
-    del.className = "secondary";
-    del.setAttribute("aria-label", "Delete " + task.text);
-    del.addEventListener("click", () => {
-      state.tasks = state.tasks.filter(t => t.id !== task.id);
-      save();
-      render();
-    });
-
-    row.append(check, text, del);
-    $("tasks").append(row);
-    if (task.done) done++;
-  });
-
-  const level = Math.floor(state.xp / 50) + 1;
-  const progress = state.xp % 50;
-  $("xp").textContent = state.xp;
-  $("level").textContent = `Level ${level} · ${["Frog beginner", "Study tadpole", "Academic amphibian", "Legendary frog"][Math.min(level - 1, 3)]}`;
-  $("bar").style.width = (progress / 50 * 100) + "%";
-  $("xpProgress").setAttribute("aria-valuenow", progress);
-  $("reward").textContent = level >= 2 ? "🎩 Your frog earned a tiny graduation hat!" : `${50 - progress} XP until your first reward!`;
-  $("taskSummary").textContent = `${done} of ${state.tasks.length} missions completed`;
-
-  $("frog").textContent = done === 0 ? "🐸" : done >= 3 ? "🐸🎓" : "🐸";
-  $("frog").setAttribute("aria-label", done >= 3 ? "Proud frog wearing a graduation cap" : "Green frog");
-  $("mood").textContent = done >= 3 ? "ABSOLUTE ACADEMIC WEAPON!" : done > 0 ? "Look at you go! Ribbit!" : state.tasks.length ? "Those missions won't do themselves 👀" : "Ready to conquer the day!";
-  $("timerLength").value = String(state.timerMinutes);
-}
-
-$("taskForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const input = $("taskInput");
-  const text = input.value.trim();
-  if (!text) return;
-  state.tasks.push({ id: Date.now() + Math.random(), text, done: false });
-  save();
-  render();
-  input.value = "";
-  input.focus();
-});
-
-let remaining = state.timerMinutes * 60;
-let interval = null;
-
-function showTime() {
-  const m = Math.floor(remaining / 60);
-  const s = remaining % 60;
-  $("timer").textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  $("timer").setAttribute("aria-label", `${m} minutes and ${s} seconds remaining`);
-}
-
-$("timerLength").addEventListener("change", e => {
-  const nextMinutes = Number(e.target.value);
-  if (![25, 50].includes(nextMinutes)) return;
-
-  state.timerMinutes = nextMinutes;
-  save();
-
-  if (interval !== null) {
-    clearInterval(interval);
-    interval = null;
-  }
-
-  remaining = nextMinutes * 60;
-  showTime();
-  $("timerMessage").textContent = `Focus length changed to ${nextMinutes} minutes.`;
-});
-
-$("start").addEventListener("click", () => {
-  if (interval !== null) return;
-  if (remaining === 0) remaining = state.timerMinutes * 60;
-  $("timerMessage").textContent = "Focus mode: activated. 🌱";
-  interval = setInterval(() => {
-    remaining--;
-    showTime();
-    if (remaining <= 0) {
-      clearInterval(interval);
-      interval = null;
-      $("timerMessage").textContent = "Session complete! Take a little break. 🎉";
+    function createDefaultState() {
+      return {
+        tasks: [],
+        xp: 0,
+        currentTaskId: null,
+        mode: "focus",
+        pomodoros: 0,
+        completedTasks: 0,
+        focusMinutes: 0,
+        streak: 0,
+        lastCompletedTaskId: null,
+        completedFocusSessions: 0,
+        totalFocusMinutes: 0,
+        currentTimerDuration: DEFAULTS.defaultFocus
+      };
     }
-  }, 1000);
-});
 
-$("pause").addEventListener("click", () => {
-  if (interval !== null) clearInterval(interval);
-  interval = null;
-  $("timerMessage").textContent = "Paused. Take your time.";
-});
+    function normalizeTask(task) {
+      if (!task || typeof task.text !== "string") return null;
+      const duration = Number(task.duration);
+      const priority = ["low", "medium", "high"].includes(task.priority) ? task.priority : "medium";
+      return {
+        id: task.id || String(Date.now() + Math.random()),
+        text: task.text.trim(),
+        duration: Number.isFinite(duration) && duration > 0 ? duration : DEFAULTS.defaultFocus,
+        priority,
+        done: Boolean(task.done),
+        completedPomodoros: Number(task.completedPomodoros) || 0,
+        createdAt: task.createdAt || Date.now()
+      };
+    }
 
-$("reset").addEventListener("click", () => {
-  if (interval !== null) clearInterval(interval);
-  interval = null;
-  remaining = state.timerMinutes * 60;
-  showTime();
-  $("timerMessage").textContent = "Timer reset. Ready when you are.";
-});
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("frogSave")) || {};
+        state = {
+          ...createDefaultState(),
+          ...saved
+        };
 
-$("newQuote").addEventListener("click", () => {
-  const options = quotes.filter(q => q !== $("quote").textContent);
-  $("quote").textContent = options[Math.floor(Math.random() * options.length)];
-});
+        if (!Array.isArray(state.tasks)) state.tasks = [];
+        state.tasks = state.tasks.map(normalizeTask).filter(Boolean);
 
-render();
-showTime();
-</script>
+        if (!Number.isFinite(state.xp) || state.xp < 0) state.xp = 0;
+        if (!Number.isFinite(state.completedFocusSessions) || state.completedFocusSessions < 0) state.completedFocusSessions = 0;
+        if (!Number.isFinite(state.focusMinutes) || state.focusMinutes < 0) state.focusMinutes = 0;
+        if (!Number.isFinite(state.totalFocusMinutes) || state.totalFocusMinutes < 0) state.totalFocusMinutes = 0;
+        if (!Number.isFinite(state.streak) || state.streak < 0) state.streak = 0;
+        if (!Number.isFinite(state.currentTimerDuration) || state.currentTimerDuration <= 0) state.currentTimerDuration = DEFAULTS.defaultFocus;
+        if (!state.currentTaskId && state.tasks.length) state.currentTaskId = state.tasks[0].id;
+      } catch {
+        state = createDefaultState();
+        if (state.tasks.length === 0 && !state.currentTaskId) {
+          state.currentTaskId = null;
+        }
+      }
+    }
+
+    function save() {
+      try {
+        localStorage.setItem("frogSave", JSON.stringify(state));
+      } catch {
+        $("mood").textContent = "Progress may not be saved in this browser.";
+      }
+    }
+
+    function getSelectedTask() {
+      return state.tasks.find(task => task.id === state.currentTaskId) || null;
+    }
+
+    function getFocusDuration() {
+      const activeTask = getSelectedTask();
+      if (state.mode === "focus") {
+        return activeTask ? activeTask.duration : state.currentTimerDuration || DEFAULTS.defaultFocus;
+      }
+
+      const completed = state.completedFocusSessions || 0;
+      const isLongBreak = completed > 0 && completed % DEFAULTS.roundsBeforeLongBreak === 0;
+      return isLongBreak ? DEFAULTS.longBreak : DEFAULTS.shortBreak;
+    }
+
+    function setDurationFromMode() {
+      const durationMinutes = getFocusDuration();
+      const desiredSeconds = durationMinutes * 60;
+
+      if (remaining === 0 || remaining > desiredSeconds) {
+        remaining = desiredSeconds;
+      }
+      showTime();
+    }
+
+    function showTime() {
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      $("timer").textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      $("timer").setAttribute("aria-label", `${minutes} minutes and ${seconds} seconds remaining`);
+    }
+
+    function renderTasks() {
+      $("tasks").replaceChildren();
+      let done = 0;
+
+      state.tasks.forEach(task => {
+        const row = document.createElement("div");
+        row.className = "task" + (task.done ? " done" : "") + (task.id === state.currentTaskId ? " active" : "");
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.checked = task.done;
+        check.setAttribute("aria-label", "Complete " + task.text);
+        check.addEventListener("change", () => {
+          task.done = check.checked;
+          if (task.done) {
+            state.xp += 10;
+            state.completedTasks += 1;
+            state.streak += 1;
+          } else {
+            state.xp = Math.max(0, state.xp - 10);
+            state.completedTasks = Math.max(0, state.completedTasks - 1);
+            state.streak = Math.max(0, state.streak - 1);
+          }
+          save();
+          render();
+        });
+
+        const textWrap = document.createElement("div");
+        textWrap.className = "task-main";
+
+        const title = document.createElement("div");
+        title.className = "task-text";
+        title.textContent = task.text;
+
+        const meta = document.createElement("div");
+        meta.className = "task-meta";
+
+        const durationLabel = document.createElement("span");
+        durationLabel.textContent = `${task.duration} min`;
+
+        const priorityBadge = document.createElement("span");
+        priorityBadge.className = `badge ${task.priority}`;
+        priorityBadge.textContent = task.priority;
+
+        const rounds = document.createElement("span");
+        rounds.textContent = `${task.completedPomodoros} focus blocks`;
+
+        meta.append(durationLabel, priorityBadge, rounds);
+        textWrap.append(title, meta);
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const activate = document.createElement("button");
+        activate.type = "button";
+        activate.className = "secondary mini-btn";
+        activate.textContent = task.id === state.currentTaskId ? "Selected" : "Use task";
+        activate.disabled = task.id === state.currentTaskId;
+        activate.addEventListener("click", () => {
+          state.currentTaskId = task.id;
+          state.currentTimerDuration = task.duration;
+          save();
+          render();
+        });
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "secondary mini-btn";
+        del.textContent = "Delete";
+        del.addEventListener("click", () => {
+          state.tasks = state.tasks.filter(t => t.id !== task.id);
+          if (state.currentTaskId === task.id) {
+            state.currentTaskId = state.tasks[0] ? state.tasks[0].id : null;
+          }
+          save();
+          render();
+        });
+
+        actions.append(activate, del);
+        row.append(check, textWrap, actions);
+        $("tasks").append(row);
+
+        if (task.done) done++;
+      });
+
+      $("taskSummary").textContent = `${done} of ${state.tasks.length} missions completed`;
+    }
+
+    function renderMood() {
+      const taskCount = state.tasks.length;
+      const completed = state.tasks.filter(task => task.done).length;
+      const frog = completed >= 3 || state.pomodoros >= 4 ? "🐸🎓" : "🐸";
+      $("frog").textContent = frog;
+      $("frog").setAttribute("aria-label", completed >= 3 ? "Proud frog wearing a graduation cap" : "Green frog");
+
+      if (completed >= 3 || state.pomodoros >= 4) {
+        $("mood").textContent = "ABSOLUTE ACADEMIC WEAPON!";
+      } else if (completed > 0 || state.pomodoros > 0) {
+        $("mood").textContent = "Look at you go! Ribbit!";
+      } else if (taskCount > 0) {
+        $("mood").textContent = "Those missions won't do themselves 👀";
+      } else {
+        $("mood").textContent = "Ready to conquer the day!";
+      }
+    }
+
+    function renderXP() {
+      const level = Math.floor(state.xp / 50) + 1;
+      const progress = state.xp % 50;
+      $("xp").textContent = state.xp;
+      $("level").textContent = `Level ${level} · ${["Frog beginner", "Study tadpole", "Academic amphibian", "Legendary frog"][Math.min(level - 1, 3)]}`;
+      $("bar").style.width = (progress / 50 * 100) + "%";
+      $("xpProgress").setAttribute("aria-valuenow", progress);
+      $("reward").textContent = level >= 2 ? "🎩 Your frog earned a tiny graduation hat!" : `${50 - progress} XP until your first reward!`;
+    }
+
+    function renderStats() {
+      $("focusMinutes").textContent = `${state.totalFocusMinutes || 0}m`;
+      $("pomodoroCount").textContent = state.pomodoros || 0;
+      $("doneCount").textContent = state.completedTasks || 0;
+      $("streakCount").textContent = state.streak || 0;
+    }
+
+    function renderModeButtons() {
+      document.querySelectorAll(".mode-btn").forEach(button => {
+        const isActive = button.dataset.mode === state.mode;
+        button.classList.toggle("active", isActive);
+      });
+
+      const activeTask = getSelectedTask();
+      if (activeTask) {
+        $("activeTaskLabel").textContent = `Active task: ${activeTask.text} (${activeTask.duration} min)`;
+      } else if (state.mode === "break") {
+        $("activeTaskLabel").textContent = "Break time — recharge your frog";
+      } else {
+        $("activeTaskLabel").textContent = "No active task selected";
+      }
+    }
+
+    function render() {
+      renderTasks();
+      renderXP();
+      renderMood();
+      renderStats();
+      renderModeButtons();
+      setDurationFromMode();
+    }
+
+    function handleTaskSubmit(event) {
+      event.preventDefault();
+      const input = $("taskInput");
+      const text = input.value.trim();
+      const minutes = Number($("taskDuration").value) || DEFAULTS.defaultFocus;
+      const priority = $("taskPriority").value || "medium";
+
+      if (!text) return;
+
+      const task = normalizeTask({
+        id: String(Date.now() + Math.random()),
+        text,
+        duration: minutes,
+        priority,
+        done: false,
+        createdAt: Date.now(),
+        completedPomodoros: 0
+      });
+
+      state.tasks.push(task);
+      state.currentTaskId = task.id;
+      state.currentTimerDuration = task.duration;
+      save();
+      render();
+
+      input.value = "";
+      $("taskPriority").value = "medium";
+      $("taskDuration").value = String(DEFAULTS.defaultFocus);
+      input.focus();
+    }
+
+    function switchMode(nextMode) {
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      state.mode = nextMode;
+      remaining = getFocusDuration() * 60;
+      showTime();
+      $("timerMessage").textContent = nextMode === "focus" ? "Focus mode: activated. 🌱" : "Break mode: deep breath. 🌿";
+      save();
+      render();
+    }
+
+    function finishSession() {
+      if (state.mode === "focus") {
+        const task = getSelectedTask();
+        state.pomodoros += 1;
+        state.completedFocusSessions += 1;
+        state.focusMinutes += getFocusDuration();
+        state.totalFocusMinutes += getFocusDuration();
+
+        if (task) {
+          task.completedPomodoros += 1;
+        }
+
+        const duration = getFocusDuration();
+        if (task) {
+          state.xp += 15;
+          state.streak = Math.max(0, state.streak + 1);
+        }
+
+        $("timerMessage").textContent = task
+          ? `Focus complete! ${task.text} deserves a breather.`
+          : "Focus complete! Take a well-earned break.";
+
+        state.mode = "break";
+        remaining = (state.completedFocusSessions % DEFAULTS.roundsBeforeLongBreak === 0 ? DEFAULTS.longBreak : DEFAULTS.shortBreak) * 60;
+      } else {
+        $("timerMessage").textContent = "Break over — back to work, little frog.";
+        state.mode = "focus";
+        remaining = (getSelectedTask() ? getSelectedTask().duration : state.currentTimerDuration || DEFAULTS.defaultFocus) * 60;
+      }
+
+      save();
+      render();
+    }
+
+    function startTimer() {
+      if (timerInterval !== null) return;
+
+      if (remaining <= 0) {
+        remaining = getFocusDuration() * 60;
+      }
+
+      $("timerMessage").textContent = state.mode === "focus" ? "Focus mode: activated. 🌱" : "Break mode: deep breath. 🌿";
+
+      timerInterval = setInterval(() => {
+        remaining -= 1;
+        showTime();
+
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          finishSession();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      $("timerMessage").textContent = "Paused. Take your time.";
+    }
+
+    function resetTimer() {
+      if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      remaining = getFocusDuration() * 60;
+      showTime();
+      $("timerMessage").textContent = state.mode === "focus" ? "Timer reset. Ready when you are." : "Break timer reset. Refresh and breathe.";
+    }
+
+    function attachEvents() {
+      $("taskForm").addEventListener("submit", handleTaskSubmit);
+
+      document.querySelectorAll(".mode-btn").forEach(button => {
+        button.addEventListener("click", () => switchMode(button.dataset.mode));
+      });
+
+      $("start").addEventListener("click", startTimer);
+      $("pause").addEventListener("click", pauseTimer);
+      $("reset").addEventListener("click", resetTimer);
+
+      $("newQuote").addEventListener("click", () => {
+        const options = quotes.filter(q => q !== $("quote").textContent);
+        $("quote").textContent = options[Math.floor(Math.random() * options.length)];
+      });
+    }
+
+    loadState();
+    attachEvents();
+    render();
+    showTime();
+  </script>
 </body>
 </html>
